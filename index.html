@@ -16,12 +16,12 @@
             <label><b>Sottotitolo</b></label><input id="inputTitle2" value="novità 2024" />
             <label><b>URL</b> (Più l'indirizzo è corto e più il barcode è leggibile)</label><input id="inputURL"
                 value="https://www.casadelparrucchiere.it/it/asciugacapelli-e-phon-professionale/3392-parlux-ethos.html" />
-                <button id="buttonGenerate">Genera QR</button>
+            <button id="buttonGenerate">Genera QR</button>
+            <button id="buttonDownload">Salva QR</button>
         </article>
 
         <article>
             <div><canvas id="canvas"></canvas></div>
-            <!--button id="buttonDownload">Salva QR</button-->
         </article>
 
     </main>
@@ -31,7 +31,10 @@
         const qrCodeSize = 300
         const canvasHeight = 380
         const canvasWidth = 300
-        
+
+        var title = ""
+        var title2 = ""
+
         let buttonGenerate = document.getElementById("buttonGenerate")
         buttonGenerate.addEventListener("click", () => {
             console.log('button > generate')
@@ -41,10 +44,31 @@
         let buttonDownload = document.getElementById("buttonDownload")
         buttonDownload.addEventListener("click", () => {
             console.log('button > download')
-            //if (!qrCode) return
+            if (!qrCode) {
+                alert("Generare prima un QR code!")
+                return
+            }
             //qrCode.download({ name: "qr", extension: "png" })
 
-            downloadCanvasAsImage(document.getElementById("canvas"))
+            //downloadCanvasAsImage(document.getElementById("canvas"))
+
+            let canvas = document.getElementById("canvas")
+            download( canvas, "qr_" + title + "_" + title2 + ".png" )
+
+            /*
+            canvas.toBlob((blob) => {
+                const newImg = document.createElement("img");
+                const url = URL.createObjectURL(blob)
+
+                newImg.onload = () => {
+                    // no longer need to read the blob so it's revoked
+                    URL.revokeObjectURL(url)
+                };
+
+                newImg.src = url
+                document.body.appendChild(newImg)
+            })
+                */
         })
 
         const extension = async (svg, options) => {
@@ -129,8 +153,8 @@
             offscreenCanvas.width = qrCodeSize //canvas.width;
             offscreenCanvas.height = qrCodeSize //canvas.height;
 
-            const title = document.getElementById("inputTitle").value
-            const title2 = document.getElementById("inputTitle2").value
+            title = document.getElementById("inputTitle").value
+            title2 = document.getElementById("inputTitle2").value
             const url = document.getElementById("inputURL").value
 
             qrCode = new QRCodeStyling({
@@ -172,13 +196,13 @@
 
             console.log('drawimage')
             ctx.fillStyle = 'white'
-            ctx.fillRect( 0,0,qrCodeSize, canvasHeight )
-            ctx.drawImage(offscreenCanvas, 
-                0, 0, qrCodeSize, qrCodeSize, 
-                0, canvasHeight-qrCodeSize, qrCodeSize, qrCodeSize
+            ctx.fillRect(0, 0, qrCodeSize, canvasHeight)
+            ctx.drawImage(offscreenCanvas,
+                0, 0, qrCodeSize, qrCodeSize,
+                0, canvasHeight - qrCodeSize, qrCodeSize, qrCodeSize
             )
-            ctx.strokeRect( 0,0,qrCodeSize, canvasHeight )
-            
+            ctx.strokeRect(0, 0, qrCodeSize, canvasHeight)
+
             //const realCanvas = canvas.firstElementChild
             //if (!realCanvas.getContext) return
 
@@ -186,9 +210,9 @@
             ctx.font = "24px serif"
 
             let textMetrics = ctx.measureText(title)
-            let x = ( qrCodeSize - Math.floor( textMetrics.width ) ) / 2
+            let x = (qrCodeSize - Math.floor(textMetrics.width)) / 2
             let actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
-            let y = actualHeight + ((canvasHeight-qrCodeSize)/2-actualHeight)/2
+            let y = actualHeight + ((canvasHeight - qrCodeSize) / 2 - actualHeight) / 2
             console.log(textMetrics.width, x, y)
 
             // y is the bottom of the text
@@ -198,24 +222,24 @@
             // subtitle
             ctx.font = "20px serif"
             textMetrics = ctx.measureText(title2)
-            x = ( qrCodeSize - Math.floor( textMetrics.width ) ) / 2
+            x = (qrCodeSize - Math.floor(textMetrics.width)) / 2
             actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
-            y = (canvasHeight-qrCodeSize)/2 + actualHeight + ((canvasHeight-qrCodeSize)/2-actualHeight)/2
+            y = (canvasHeight - qrCodeSize) / 2 + actualHeight + ((canvasHeight - qrCodeSize) / 2 - actualHeight) / 2
             console.log(textMetrics.width, x, y)
 
             // y is the bottom of the text
             ctx.fillText(title2, x, y)
 
-/*
-            ctx.fillStyle = "blue"
-            ctx.fillRect(0, 0, 100, 100)
-            //ctx.clearRect(45, 45, 60, 60);
-            //ctx.strokeRect(50, 50, 50, 50);
-
-            ctx.moveTo(0, 0)
-            ctx.lineTo(200, 100)
-            ctx.stroke()
-*/
+            /*
+                        ctx.fillStyle = "blue"
+                        ctx.fillRect(0, 0, 100, 100)
+                        //ctx.clearRect(45, 45, 60, 60);
+                        //ctx.strokeRect(50, 50, 50, 50);
+            
+                        ctx.moveTo(0, 0)
+                        ctx.lineTo(200, 100)
+                        ctx.stroke()
+            */
             console.log("end")
         }
 
@@ -223,13 +247,53 @@
             const imageBitmap = await createImageBitmap(myBlob)
             console.log(imageBitmap)
             myCanvas.getContext('2d').drawImage(imageBitmap, 0, 0)
-                console.log('blobToCanvas end')
+            console.log('blobToCanvas end')
         }
+        /*
+                function downloadCanvasAsImage(canvas)
+        {
+            // open canvas as image in new window
+            canvas.toBlob((blob) => window.open(URL.createObjectURL(blob), '_blank'));
+        }
+            */
+        /*
+        async function downloadCanvasAsImage( canvas ) {
+            const newImg = document.createElement("img")
+          const url = URL.createObjectURL(canvas.toBlob())
+        
+          newImg.onload = () => {
+            // no longer need to read the blob so it's revoked
+            URL.revokeObjectURL(url);
+          }
+        
+          newImg.src = url
+          document.body.appendChild(newImg)
+        }*/
 
-        function downloadCanvasAsImage(canvas)
-{
-    // open canvas as image in new window
-    canvas.toBlob((blob) => window.open(URL.createObjectURL(blob), '_blank'));
+/* Canvas Donwload */
+function download(canvas, filename) {
+  /// create an "off-screen" anchor tag
+  var lnk = document.createElement('a'), e;
+
+  /// the key here is to set the download attribute of the a tag
+  lnk.download = filename;
+
+  /// convert canvas content to data-uri for link. When download
+  /// attribute is set the content pointed to by link will be
+  /// pushed as "download" in HTML5 capable browsers
+  lnk.href = canvas.toDataURL("image/png;base64");
+
+  /// create a "fake" click-event to trigger the download
+  if (document.createEvent) {
+    e = document.createEvent("MouseEvents");
+    e.initMouseEvent("click", true, true, window,
+                     0, 0, 0, 0, 0, false, false, false,
+                     false, 0, null);
+
+    lnk.dispatchEvent(e);
+  } else if (lnk.fireEvent) {
+    lnk.fireEvent("onclick");
+  }
 }
     </script>
 </body>
