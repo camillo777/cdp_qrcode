@@ -1,39 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>QR Code Styling</title>
-    <script type="text/javascript" src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <script type="text/javascript" src="qr-code-styling.js"></script>
+    <link rel="stylesheet" href="pico.min.css">
 </head>
+
 <body>
-<form>
-    <input id="in_descr"/>
-</form>
-<div id="canvas"></div>
-<script type="text/javascript">
+    <main class="container">
 
-    const qrCode = new QRCodeStyling({
-        width: 300,
-        height: 300,
-        type: "svg",
-        data: "https://www.facebook.com/",
-        image: "logo-1701619858.jpg",
-        //image: "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
-        dotsOptions: {
-            color: "#4267b2",
-            type: "rounded"
-        },
-        backgroundOptions: {
-            color: "#e9ebee",
-        },
-        imageOptions: {
-            crossOrigin: "anonymous",
-            margin: 20
+        <article>
+            <label><b>Titolo</b></label><input id="inputTitle" value="PROMOZIONE PARLUX" />
+            <label><b>Sottotitolo</b></label><input id="inputTitle2" value="novità 2024" />
+            <label><b>URL</b> (Più l'indirizzo è corto e più il barcode è leggibile)</label><input id="inputURL"
+                value="https://www.casadelparrucchiere.it/it/asciugacapelli-e-phon-professionale/3392-parlux-ethos.html" />
+                <button id="buttonGenerate">Genera QR</button>
+        </article>
+
+        <article>
+            <div><canvas id="canvas"></canvas></div>
+            <!--button id="buttonDownload">Salva QR</button-->
+        </article>
+
+    </main>
+    <script type="text/javascript">
+
+        var qrCode
+        const qrCodeSize = 300
+        const canvasHeight = 380
+        const canvasWidth = 300
+        
+        let buttonGenerate = document.getElementById("buttonGenerate")
+        buttonGenerate.addEventListener("click", () => {
+            console.log('button > generate')
+            generate()
+        })
+
+        let buttonDownload = document.getElementById("buttonDownload")
+        buttonDownload.addEventListener("click", () => {
+            console.log('button > download')
+            //if (!qrCode) return
+            //qrCode.download({ name: "qr", extension: "png" })
+
+            downloadCanvasAsImage(document.getElementById("canvas"))
+        })
+
+        const extension = async (svg, options) => {
+            const { width, height, margin, title, title2 } = options
+            const size = Math.min(width, height)
+
+            console.log("extension", width, height, margin, title, title2)
+
+            //const x = (width - size + 40) / 2
+            //const y = 
+
+            const border = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            const borderAttributes = {
+                "fill": "none",
+                "x": 0, //(width - size + 40) / 2,
+                "y": 0, //(height - size + 40) / 2,
+                "width": size, // - 40,
+                "height": size, // - 40,
+                "stroke": 'black',
+                "stroke-width": 1,
+                //"rx": 100,
+            };
+            Object.keys(borderAttributes).forEach(attribute => {
+                border.setAttribute(attribute, borderAttributes[attribute]);
+            });
+
+            /*const gtext = document.createElementNS("http://www.w3.org/2000/svg", "g")
+            const gtextAttributes = {
+                "x": margin,
+                "y": 0,
+                "width": size,
+                "height": margin,
+                "fill": '#ff00ff',
+            }
+            Object.keys(gtextAttributes).forEach(attribute => {
+                gtext.setAttribute(attribute, gtextAttributes[attribute])
+            })
+            svg.appendChild(gtext);*/
+
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            const textAttributes = {
+                "x": margin,
+                "y": margin / 2,
+                "fill": '#ff0000',
+                "stroke": 'none',
+                "white-space": 'break-spaces',
+                "textLength": width - margin * 2,
+                "textAnchor": 'middle',
+                "font-weight": 'bold'
+            }
+            Object.keys(textAttributes).forEach(attribute => {
+                text.setAttribute(attribute, textAttributes[attribute])
+            })
+            text.textContent = title
+
+            const text2 = document.createElementNS("http://www.w3.org/2000/svg", "text")
+            const textAttributes2 = {
+                "x": margin,
+                "y": margin,
+                "fill": '#ff0000',
+                "stroke": 'none',
+                "white-space": 'break-spaces',
+                "textLength": width - margin * 2,
+                "textAnchor": 'middle'
+            }
+            Object.keys(textAttributes2).forEach(attribute => {
+                text2.setAttribute(attribute, textAttributes2[attribute])
+            })
+            text2.textContent = title2
+
+            //svg.appendChild(border)
+            svg.appendChild(text)
+            svg.appendChild(text2)
         }
-    });
 
-    qrCode.append(document.getElementById("canvas"));
-    //qrCode.download({ name: "qr", extension: "svg" });
-</script>
+        async function generate() {
+            const canvas = document.getElementById("canvas")
+            canvas.width = canvasWidth
+            canvas.height = canvasHeight
+
+            const offscreenCanvas = document.createElement("canvas");
+            offscreenCanvas.width = qrCodeSize //canvas.width;
+            offscreenCanvas.height = qrCodeSize //canvas.height;
+
+            const title = document.getElementById("inputTitle").value
+            const title2 = document.getElementById("inputTitle2").value
+            const url = document.getElementById("inputURL").value
+
+            qrCode = new QRCodeStyling({
+                width: qrCodeSize,
+                height: qrCodeSize,
+                //type: "svg",
+                data: url, //"https://www.facebook.com/",
+                //image: "logo.png",
+                margin: 0,
+                //image: "https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg",
+                /*dotsOptions: {
+                    color: "#4267b2",
+                    type: "rounded"
+                },*/
+                /*backgroundOptions: {
+                    color: "#e9ebee",
+                },*/
+                /*imageOptions: {
+                    crossOrigin: "anonymous",
+                    //margin: 20,
+                    //saveAsBlob: true
+                },*/
+                title: title,
+                title2: title2
+            })
+
+            //qrCode.applyExtension( extension )
+            //qrCode.append( offscreenCanvas ) //document.getElementById("canvas") )
+            const img = await qrCode.getRawData("png")
+            //console.log( img )
+            //qrCode.download({ name: "qr", extension: "svg" });
+
+            //const realCanvas = canvas.firstChild
+            //const canvas = document.getElementById("canvas")
+            //realCanvas.innerHTML = ""
+            const ctx = canvas.getContext("2d")
+
+            await blobToCanvas(img, offscreenCanvas)
+
+            console.log('drawimage')
+            ctx.fillStyle = 'white'
+            ctx.fillRect( 0,0,qrCodeSize, canvasHeight )
+            ctx.drawImage(offscreenCanvas, 
+                0, 0, qrCodeSize, qrCodeSize, 
+                0, canvasHeight-qrCodeSize, qrCodeSize, qrCodeSize
+            )
+            ctx.strokeRect( 0,0,qrCodeSize, canvasHeight )
+            
+            //const realCanvas = canvas.firstElementChild
+            //if (!realCanvas.getContext) return
+
+            ctx.fillStyle = 'black'
+            ctx.font = "24px serif"
+
+            let textMetrics = ctx.measureText(title)
+            let x = ( qrCodeSize - Math.floor( textMetrics.width ) ) / 2
+            let actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
+            let y = actualHeight + ((canvasHeight-qrCodeSize)/2-actualHeight)/2
+            console.log(textMetrics.width, x, y)
+
+            // y is the bottom of the text
+            ctx.fillText(title, x, y)
+
+
+            // subtitle
+            ctx.font = "20px serif"
+            textMetrics = ctx.measureText(title2)
+            x = ( qrCodeSize - Math.floor( textMetrics.width ) ) / 2
+            actualHeight = textMetrics.actualBoundingBoxAscent + textMetrics.actualBoundingBoxDescent
+            y = (canvasHeight-qrCodeSize)/2 + actualHeight + ((canvasHeight-qrCodeSize)/2-actualHeight)/2
+            console.log(textMetrics.width, x, y)
+
+            // y is the bottom of the text
+            ctx.fillText(title2, x, y)
+
+/*
+            ctx.fillStyle = "blue"
+            ctx.fillRect(0, 0, 100, 100)
+            //ctx.clearRect(45, 45, 60, 60);
+            //ctx.strokeRect(50, 50, 50, 50);
+
+            ctx.moveTo(0, 0)
+            ctx.lineTo(200, 100)
+            ctx.stroke()
+*/
+            console.log("end")
+        }
+
+        async function blobToCanvas(myBlob, myCanvas) {
+            const imageBitmap = await createImageBitmap(myBlob)
+            console.log(imageBitmap)
+            myCanvas.getContext('2d').drawImage(imageBitmap, 0, 0)
+                console.log('blobToCanvas end')
+        }
+
+        function downloadCanvasAsImage(canvas)
+{
+    // open canvas as image in new window
+    canvas.toBlob((blob) => window.open(URL.createObjectURL(blob), '_blank'));
+}
+    </script>
 </body>
+
 </html>
